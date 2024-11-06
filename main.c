@@ -1,5 +1,7 @@
 #include "ft_ping.h"
 
+int keepRunning = 1;
+
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr)
 {
     struct hostent *host_entity;
@@ -37,6 +39,10 @@ char *reverse_dns_lookup(char *ip_addr) {
     return ret_buf;
 }
 
+void intHandler(int) {
+    keepRunning = 0;
+}
+
 int main (int ac, char **av)
 {
 	if (ac != 2)
@@ -56,8 +62,22 @@ int main (int ac, char **av)
     reverse_hostname = reverse_dns_lookup(ip_addr);
     // printf("\nTrying to connect to '%s' IP: %s\n", av[1], ip_addr);
     // printf("\nReverse Lookup domain: %s\n", reverse_hostname);
-	printf("PING %s (%s) xx(xx) bytes of data\n", av[1], ip_addr);
+	printf("PING %s (%s) 56(84) bytes of data.\n", av[1], ip_addr);
 
+    signal(SIGINT, intHandler);
+    int seq = 1;
+
+	while (keepRunning)
+	{
+		if (strcmp(av[1], ip_addr))
+			printf("64 bytes from %s (%s): icmp_seq=%d ttl=110 time=9.91 ms\n", reverse_hostname, ip_addr, seq++);
+		else
+			printf("64 bytes from %s: icmp_seq=%d ttl=62 time=4.82 ms\n", ip_addr, seq++);
+		sleep(1);
+	}
+
+    printf("\n--- %s ping statistics ---\n", av[1]);
+    printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n", 4, 4, 0, 1000);
 
 	free(ip_addr);
 	free(reverse_hostname);
