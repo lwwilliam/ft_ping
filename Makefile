@@ -1,6 +1,6 @@
 NAME = ft_ping
 
-SRCS = main.c
+SRCS = main.c dns.c
 
 OBJ_DIR = ./obj/
 
