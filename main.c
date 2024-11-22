@@ -2,6 +2,25 @@
 
 int keepRunning = 1;
 
+unsigned short calculate_checksum(unsigned short *addr, int length)
+{
+	unsigned long sum = 0;
+
+	while (length > 1) //processes the input data in 16-bit (2-byte) chunks
+	{
+		sum += *addr++;
+		length -= 2;
+	}
+	if (length == 1)
+		sum += *(unsigned char *)addr;
+	while (sum >> 16) // Checks if sum has overflowed beyond 16 bits 
+		sum = (sum & 0xFFFF) + (sum >> 16); // Adds the upper 16 bits of sum (sum >> 16) to the lower 16 bits (sum & 0xFFFF).
+	return ~sum; // Bitwise not conversion
+	// Converts the result into the 1's complement representation
+	// https://www.tutorialspoint.com/one-s-complement
+}
+//http://www.faqs.org/rfcs/rfc1071.html in 4.1
+
 void intHandler(int) {
     keepRunning = 0;
 }
@@ -28,7 +47,6 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 	struct icmphdr *icmp = (struct icmphdr *)buffer;
 	struct sockaddr_in r_addr;
 
-    printf("%d\n", sockfd);
 	while (keepRunning)
 	{
 		memset(buffer, 0, BUFFER_SIZE);
@@ -37,8 +55,9 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 		icmp->checksum = 0; 
 		icmp->un.echo.id = getpid();
 		icmp->un.echo.sequence = seq++;
+		icmp->checksum = calculate_checksum((unsigned short *)icmp, PAYLOAD_SIZE);
 
-		printf("%ld\n", sendto(sockfd, buffer, sizeof(struct icmphdr), 0, (struct sockaddr*)addr, sizeof(*addr)));
+		printf("send bytes %ld\n", sendto(sockfd, buffer, PAYLOAD_SIZE, 0, (struct sockaddr*)addr, sizeof(*addr)));
 		unsigned int addr_len = sizeof(r_addr);
 		ssize_t recv_bytes = recvfrom(sockfd, rbuffer, sizeof(rbuffer), 0, (struct sockaddr*)&r_addr, &addr_len);
 		if (recv_bytes < 0)
@@ -47,16 +66,15 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 		}
 		else
 		{
-			printf("Received %ld bytes\n", recv_bytes);
+			if (strcmp(arg, ip_address))
+				printf("%ld bytes from %s (%s): icmp_seq=%d ttl=110 time=9.91 ms\n", recv_bytes - sizeof(struct iphdr), reverse_hostname, ip_address, seq);
+			else
+				printf("%ld bytes from %s: icmp_seq=%d ttl=62 time=4.82 ms\n", recv_bytes - sizeof(struct iphdr), ip_address, seq);
 		}
 
-		if (strcmp(arg, ip_address))
-			printf("64 bytes from %s (%s): icmp_seq=%d ttl=110 time=9.91 ms\n", reverse_hostname, ip_address, seq);
-		else
-			printf("64 bytes from %s: icmp_seq=%d ttl=62 time=4.82 ms\n", ip_address, seq);
 		sleep(1);
 	}
-
+	close(sockfd);
     printf("\n--- %s ping statistics ---\n", arg);
     printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n", 4, 4, 0, 1000);
 }

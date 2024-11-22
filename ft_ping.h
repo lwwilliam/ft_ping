@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <netinet/ip_icmp.h>
 #include <sys/time.h>
@@ -27,6 +28,7 @@
 
 #define PORT_NO 0
 #define BUFFER_SIZE 1024
+#define PAYLOAD_SIZE 64
 
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr);
 char *reverse_dns_lookup(char *ip_addr);
