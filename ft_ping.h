@@ -17,6 +17,8 @@
 #include <signal.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
+#include <errno.h>
+#include <math.h>
 
 #ifndef NI_MAXHOST
 #define NI_MAXHOST 1025

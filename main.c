@@ -48,16 +48,20 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 		printf("ttl set error");
 
 	struct timeval timeout;
-	timeout.tv_sec = 1;  // 1-second timeout
+	timeout.tv_sec = 4;  // 4-second timeout
 	timeout.tv_usec = 0;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0)
-		printf("timeout set error");
+		printf("Request Timed out\n");
 
 
 	char buffer[BUFFER_SIZE];
 	char rbuffer[BUFFER_SIZE];
 	struct icmphdr *icmp = (struct icmphdr *)buffer;
 	struct sockaddr_in r_addr;
+	float min = 0;
+	float total_time = 0;
+	float max = 0;
+	float rtt_times[1024];
 
 	gettimeofday(&prog_start, NULL);
 	while (keepRunning)
@@ -79,6 +83,7 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 			pkt_rec++;
 			gettimeofday(&tv2, NULL);
 			float time = (float)(tv2.tv_usec - tv1.tv_usec) / 1000 + (float)(tv2.tv_sec - tv1.tv_sec) * 1000;
+			rtt_times[pkt_rec - 1] = time;
 			if (verbose == 1)
 			{
 				if (strcmp(arg, ip_address))
@@ -93,8 +98,18 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 				else
 					printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ip_address, seq, ttl, time);
 			}
+			min = time;
+			min = time < min ? time : min;
+			max = time > max ? time : max;
+			total_time += time;
 		}
-
+		else
+        {
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				printf("Request Timeout for icmp_seq=%d\n", seq);
+			else
+				printf("From %s icmp_seq=%d Destination Host Unreachable\n", ip_address, seq);
+        }
 		sleep(1);
 	}
 	close(sockfd);
@@ -103,6 +118,15 @@ void ping_funct(char *reverse_hostname, struct sockaddr_in *addr, char *arg, cha
 	gettimeofday(&prog_end, NULL);
 	float prog_time = (float)(prog_end.tv_usec - prog_start.tv_usec) / 1000 + (float)(prog_end.tv_sec - prog_start.tv_sec) * 1000;
 	printf("%d packets transmitted, %d received, %.2f%% packet loss, time %.0fms\n", seq, pkt_rec, loss, prog_time);
+	if (pkt_rec > 0)
+	{
+    	float avg = pkt_rec > 0 ? total_time / pkt_rec : 0;
+		float mdev = 0;
+		for (int i = 0; i < pkt_rec; i++)
+			mdev += fabs(rtt_times[i] - avg);
+		mdev /= pkt_rec;
+		printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", min, avg, max, mdev);
+	}
 }
 
 void help()
