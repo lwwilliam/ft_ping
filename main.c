@@ -2,16 +2,16 @@
 
 int keepRunning = 1;
 
-unsigned short calculate_checksum(unsigned short *addr, int length)
+unsigned short calculate_checksum(unsigned short *addr, int count)
 {
 	unsigned long sum = 0;
 
-	while (length > 1) //processes the input data in 16-bit (2-byte) chunks
+	while (count > 1)
 	{
 		sum += *addr++;
-		length -= 2;
+		count -= 2;
 	}
-	if (length == 1)
+	if (count > 0)
 		sum += *(unsigned char *)addr;
 	while (sum >> 16) // Checks if sum has overflowed beyond 16 bits 
 		sum = (sum & 0xFFFF) + (sum >> 16); // Adds the upper 16 bits of sum (sum >> 16) to the lower 16 bits (sum & 0xFFFF).
