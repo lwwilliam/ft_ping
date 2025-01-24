@@ -1,5 +1,7 @@
 #include "ft_ping.h"
 
+// https://stackoverflow.com/questions/9055000/get-list-of-devices-on-lan-in-c
+// https://www.mycplus.com/source-code/c-source-code/ping/
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr)
 {
 	struct hostent *host_entity;
