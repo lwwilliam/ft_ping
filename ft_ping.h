@@ -31,8 +31,20 @@
 #define PORT_NO 0
 #define BUFFER_SIZE 1024
 #define PAYLOAD_SIZE 64
+#define TTL 64
+
+typedef struct s_ping
+{
+	int verbose;
+	char *ip_addr;
+	char *reverse_hostname;
+	int ttl;
+	char *ping_arg;
+} t_ping;
 
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr);
 char *reverse_dns_lookup(char *ip_addr);
+void ping_funct(struct sockaddr_in *addr, struct s_ping *ping_struct);
+unsigned short calculate_checksum(unsigned short *addr, int count);
 
 #endif
