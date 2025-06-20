@@ -15,3 +15,18 @@ Target Host
 - The target host receives the ICMP Echo Request packet.
 - The target host processes the request and sends back an ICMP Echo Reply packet to the source host.
 - The target host may also send an ICMP Time Exceeded message if the packet's TTL (Time to Live) value reaches zero before reaching its destination.
+
+# PING packet breakdown
+PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+- 56: This is the size of the ICMP payload (data) in bytes.
+- 84: This is the total size of the packet sent over the wire, in bytes.
+
+# Payload data
+- ICMP header: 8 bytes
+- ICMP payload: 56 bytes (default for ping)
+- IP header: 20 bytes (standard IPv4 header)
+- So, total size = 20 (IP) + 8 (ICMP header) + 56 (payload) = 84 bytes.
+
+56 = data bytes (payload)
+
+84 = total bytes sent (IP header + ICMP header + payload)
