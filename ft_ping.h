@@ -30,7 +30,8 @@
 
 #define PORT_NO 0
 #define BUFFER_SIZE 1024
-#define PAYLOAD_SIZE 64
+#define PAYLOAD_SIZE 56
+#define PACKET_SIZE (sizeof(struct icmphdr) + PAYLOAD_SIZE)
 #define TTL 64
 
 typedef struct s_ping
@@ -42,9 +43,21 @@ typedef struct s_ping
 	char *ping_arg;
 } t_ping;
 
+typedef struct s_ping_vars {
+	struct timeval prog_start;
+	float total_time;
+	float min;
+	float max;
+	int seq;
+	int pkt_rec;
+} t_ping_vars;
+
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr);
 char *reverse_dns_lookup(char *ip_addr);
 void ping_funct(struct sockaddr_in *addr, struct s_ping *ping_struct);
 unsigned short calculate_checksum(unsigned short *addr, int count);
+void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rtt_times);
+void recv_failed(int seq, struct s_ping *ping_struct);
+void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp);
 
 #endif

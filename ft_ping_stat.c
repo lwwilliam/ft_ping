@@ -1,0 +1,47 @@
+#include "ft_ping.h"
+
+void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp)
+{
+	if (ping_struct->verbose == 1)
+	{
+		if (strcmp(ping_struct->ping_arg, ping_struct->ip_addr))
+			printf("%ld bytes from %s (%s): icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, icmp->un.echo.id, ping_struct->ttl, time);
+		else
+			printf("%ld bytes from %s: icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, icmp->un.echo.id, ping_struct->ttl, time);
+	}
+	else
+	{
+		if (strcmp(ping_struct->ping_arg, ping_struct->ip_addr))
+			printf("%ld bytes from %s (%s): icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, ping_struct->ttl, time);
+		else
+			printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, ping_struct->ttl, time);
+	}
+}
+
+void recv_failed(int seq, struct s_ping *ping_struct)
+{
+	if (errno == EAGAIN || errno == EWOULDBLOCK)
+		printf("Request Timeout for icmp_seq=%d\n", seq);
+	else
+		printf("From %s icmp_seq=%d Destination Host Unreachable\n", ping_struct->ip_addr, seq);
+}
+
+void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rtt_times)
+{
+	struct timeval prog_end;
+
+	printf("\n--- %s ping statistics ---\n", ping_struct->ping_arg);
+	float loss = ((float)(vars->seq - vars->pkt_rec) / vars->seq) * 100;
+	gettimeofday(&prog_end, NULL);
+	float prog_time = (float)(prog_end.tv_usec - vars->prog_start.tv_usec) / 1000 + (float)(prog_end.tv_sec - vars->prog_start.tv_sec) * 1000;
+	printf("%d packets transmitted, %d received, %.2f%% packet loss, time %.0fms\n", vars->seq, vars->pkt_rec, loss, prog_time);
+	if (vars->pkt_rec > 0)
+	{
+		float avg = vars->pkt_rec > 0 ? vars->total_time / vars->pkt_rec : 0;
+		float mdev = 0;
+		for (int i = 0; i < vars->pkt_rec; i++)
+			mdev += fabs(rtt_times[i] - avg);
+		mdev /= vars->pkt_rec;
+		printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", vars->min, avg, vars->max, mdev);
+	}
+}

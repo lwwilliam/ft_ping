@@ -62,9 +62,13 @@ int main (int ac, char **av)
 		free(ping_struct.ip_addr);
 		return 0;
 	}
-	ping_struct.reverse_hostname = reverse_dns_lookup(ping_struct.ip_addr);
+	char *rev = reverse_dns_lookup(ping_struct.ip_addr);
+	if (rev)
+		ping_struct.reverse_hostname = rev;
+	else
+		ping_struct.reverse_hostname = ping_struct.ip_addr;
 	ping_funct(&addr, &ping_struct);
 	free(ping_struct.ip_addr);
-	free(ping_struct.reverse_hostname);
+	free(rev);
 	return (0);
 }
