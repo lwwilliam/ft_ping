@@ -50,6 +50,7 @@ typedef struct s_ping_vars {
 	float max;
 	int seq;
 	int pkt_rec;
+	float rtt_times[1024];
 } t_ping_vars;
 
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr);
@@ -58,6 +59,7 @@ void ping_funct(struct sockaddr_in *addr, struct s_ping *ping_struct);
 unsigned short calculate_checksum(unsigned short *addr, int count);
 void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rtt_times);
 void recv_failed(int seq, struct s_ping *ping_struct);
-void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp);
+void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp, int recv_ttl);
+void update_stats(struct s_ping_vars *vars, float time);
 
 #endif

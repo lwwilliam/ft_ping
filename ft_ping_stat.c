@@ -1,20 +1,20 @@
 #include "ft_ping.h"
 
-void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp)
+void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp, int recv_ttl)
 {
 	if (ping_struct->verbose == 1)
 	{
 		if (strcmp(ping_struct->ping_arg, ping_struct->ip_addr))
-			printf("%ld bytes from %s (%s): icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, icmp->un.echo.id, ping_struct->ttl, time);
+			printf("%ld bytes from %s (%s): icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, icmp->un.echo.id, recv_ttl, time);
 		else
-			printf("%ld bytes from %s: icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, icmp->un.echo.id, ping_struct->ttl, time);
+			printf("%ld bytes from %s: icmp_seq=%d ident=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, icmp->un.echo.id, recv_ttl, time);
 	}
 	else
 	{
 		if (strcmp(ping_struct->ping_arg, ping_struct->ip_addr))
-			printf("%ld bytes from %s (%s): icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, ping_struct->ttl, time);
+			printf("%ld bytes from %s (%s): icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->reverse_hostname, ping_struct->ip_addr, seq, recv_ttl, time);
 		else
-			printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, ping_struct->ttl, time);
+			printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n", recv_bytes - sizeof(struct iphdr), ping_struct->ip_addr, seq, recv_ttl, time);
 	}
 }
 
@@ -44,4 +44,14 @@ void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rt
 		mdev /= vars->pkt_rec;
 		printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", vars->min, avg, vars->max, mdev);
 	}
+}
+
+void update_stats(struct s_ping_vars *vars, float time)
+{
+	vars->pkt_rec++;
+	vars->rtt_times[vars->pkt_rec - 1] = time;
+	vars->min = time;
+	vars->min = time < vars->min ? time : vars->min;
+	vars->max = time > vars->max ? time : vars->max;
+	vars->total_time += time;
 }

@@ -6,7 +6,7 @@ OBJ_DIR = ./obj/
 
 OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.c=.o))
 
-CFLAGS = -Wall -Werror -Wextra -fsanitize=address -g3
+CFLAGS = -Wall -Werror -Wextra
 
 all: $(NAME)
 
