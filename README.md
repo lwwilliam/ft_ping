@@ -30,3 +30,11 @@ PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
 56 = data bytes (payload)
 
 84 = total bytes sent (IP header + ICMP header + payload)
+
+# Checksum
+- The checksum is a value used to verify the integrity of data transmitted over a network.
+- The checksum is included in the packet header and is used by the receiving host to verify that the data has not been corrupted during transmission.
+
+# ICMP
+- ICMP (Internet Control Message Protocol) is a network layer protocol used by network devices to send error messages and operational information.
+- ICMP is used by the ping command to send Echo Request and Echo Reply messages.
