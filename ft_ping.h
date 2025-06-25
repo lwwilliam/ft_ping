@@ -51,6 +51,7 @@ typedef struct s_ping_vars {
 	int seq;
 	int pkt_rec;
 	float rtt_times[1024];
+	int errors;
 } t_ping_vars;
 
 char *dns_lookup(char *addr_host, struct sockaddr_in *addr);

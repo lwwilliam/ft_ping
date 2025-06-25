@@ -82,6 +82,7 @@ void ping_recv(struct s_ping_vars *vars, struct s_ping *ping_struct, int sockfd,
 			char addr_str[INET_ADDRSTRLEN];
 			inet_ntop(AF_INET, &r_addr.sin_addr, addr_str, sizeof(addr_str));
 			printf("From %s icmp_seq=%d Time to live exceeded\n", addr_str, vars->seq);
+			vars->errors++;
 		}
 	}
 	else

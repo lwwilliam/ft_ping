@@ -34,7 +34,10 @@ void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rt
 	float loss = ((float)(vars->seq - vars->pkt_rec) / vars->seq) * 100;
 	gettimeofday(&prog_end, NULL);
 	float prog_time = (float)(prog_end.tv_usec - vars->prog_start.tv_usec) / 1000 + (float)(prog_end.tv_sec - vars->prog_start.tv_sec) * 1000;
-	printf("%d packets transmitted, %d received, %.2f%% packet loss, time %.0fms\n", vars->seq, vars->pkt_rec, loss, prog_time);
+	if (vars->errors > 0)
+		printf("%d packets transmitted, %d received, +%d errors, %.2f%% packet loss, time %.0fms\n", vars->seq, vars->pkt_rec, vars->errors, loss, prog_time);
+	else
+		printf("%d packets transmitted, %d received, %.2f%% packet loss, time %.0fms\n", vars->seq, vars->pkt_rec, loss, prog_time);
 	if (vars->pkt_rec > 0)
 	{
 		float avg = vars->pkt_rec > 0 ? vars->total_time / vars->pkt_rec : 0;
