@@ -38,3 +38,5 @@ PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
 # ICMP
 - ICMP (Internet Control Message Protocol) is a network layer protocol used by network devices to send error messages and operational information.
 - ICMP is used by the ping command to send Echo Request and Echo Reply messages.
+
+sudo setcap cap_net_raw+ep ft_ping
