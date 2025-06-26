@@ -6,23 +6,6 @@ void intHandler() {
 	keepRunning = 0;
 }
 
-void ping_error(int sockfd, struct s_ping *ping_struct)
-{
-	if (sockfd < 0)
-		printf("file descriptor for the new socket failed creating\n");
-	if (ping_struct->verbose == 1)
-	{
-		printf("ping: sock4.fd: %d (socktype: SOCK_RAW), hints.ai_family: AF_UNSPEC\n\n", sockfd);
-		printf("ai->ai_family: AF_INET, ai->ai_canonname: '%s'\n", ping_struct->ping_arg);
-	}
-	printf("PING %s (%s) 56(84) bytes of data.\n", ping_struct->ping_arg, ping_struct->ip_addr);
-
-	signal(SIGINT, intHandler);
-
-	if (setsockopt(sockfd, SOL_SOCKET, IP_TTL, &ping_struct->ttl, sizeof(ping_struct->ttl)))
-		printf("ttl set error");
-}
-
 void icmp_init(struct icmphdr *icmp, int seq)
 {
 	memset(icmp, 0, PACKET_SIZE);
@@ -56,6 +39,34 @@ int init_socket(struct s_ping *ping_struct)
 	return sockfd;
 }
 
+void icmp_err(int type, struct sockaddr_in r_addr, struct s_ping_vars *vars)
+{
+	char addr_str[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &r_addr.sin_addr, addr_str, sizeof(addr_str));
+	printf("From %s icmp_seq=%d ", addr_str, vars->seq);
+	vars->errors++;
+	switch (type)
+	{
+		case ICMP_DEST_UNREACH:
+			printf("Destination host unreachable\n");
+			break;
+		case ICMP_SOURCE_QUENCH:
+			printf("Source quench\n");
+			break;
+		case ICMP_REDIRECT:
+			printf("Redirect message\n");
+			break;
+		case ICMP_TIME_EXCEEDED:
+			printf("Time to live exceeded\n");
+			break;
+		case ICMP_PARAMETERPROB:
+			printf("Parameter problem\n");
+			break;
+		default:
+			printf("Unknown ICMP type\n");
+	}
+}
+
 void ping_recv(struct s_ping_vars *vars, struct s_ping *ping_struct, int sockfd, struct timeval tv1)
 {
 	struct timeval tv2;
@@ -77,16 +88,11 @@ void ping_recv(struct s_ping_vars *vars, struct s_ping *ping_struct, int sockfd,
 			update_stats(vars, time);
 			ping_print(ping_struct, recv_bytes, vars->seq, time, icmp_hdr, ip_hdr->ttl);
 		}
-		else if (icmp_hdr->type == ICMP_TIME_EXCEEDED)
-		{
-			char addr_str[INET_ADDRSTRLEN];
-			inet_ntop(AF_INET, &r_addr.sin_addr, addr_str, sizeof(addr_str));
-			printf("From %s icmp_seq=%d Time to live exceeded\n", addr_str, vars->seq);
-			vars->errors++;
-		}
+		else
+			icmp_err(icmp_hdr->type, r_addr, vars);
 	}
 	else
-		recv_failed(vars->seq, ping_struct);
+		recv_failed(vars->seq, ping_struct, vars);
 }
 
 void ping_funct(struct sockaddr_in *addr, struct s_ping *ping_struct)
