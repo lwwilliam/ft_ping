@@ -59,6 +59,7 @@ int main (int ac, char **av)
 	ping_struct.ip_addr = dns_lookup(ping_struct.ping_arg, &addr);
 	if (ping_struct.ip_addr == NULL)
 	{
+		printf("ping: %s: Name or service not known\n", ping_struct.ping_arg);
 		free(ping_struct.ip_addr);
 		return 0;
 	}
