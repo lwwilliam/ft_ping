@@ -62,7 +62,7 @@ void print_stats(struct s_ping *ping_struct, struct s_ping_vars *vars, float *rt
 void recv_failed(int seq, struct s_ping *ping_struct, struct s_ping_vars *vars);
 void ping_print(struct s_ping *ping_struct, int recv_bytes, int seq, float time, struct icmphdr *icmp, int recv_ttl);
 void update_stats(struct s_ping_vars *vars, float time);
-void ping_error(int sockfd, struct s_ping *ping_struct);
+int ping_init(int sockfd, struct s_ping *ping_struct);
 void intHandler();
 
 #endif

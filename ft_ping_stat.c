@@ -60,14 +60,20 @@ void update_stats(struct s_ping_vars *vars, float time)
 	vars->total_time += time;
 }
 
-void ping_error(int sockfd, struct s_ping *ping_struct)
+int ping_init(int sockfd, struct s_ping *ping_struct)
 {
 	if (sockfd < 0)
 		printf("file descriptor for the new socket failed creating\n");
 	if (ping_struct->verbose == 1)
 	{
 		printf("ping: sock4.fd: %d (socktype: SOCK_RAW), hints.ai_family: AF_UNSPEC\n\n", sockfd);
-		printf("ai->ai_family: AF_INET, ai->ai_canonname: '%s'\n", ping_struct->ping_arg);
+		if (ping_struct->ip_addr != NULL)
+			printf("ai->ai_family: AF_INET, ai->ai_canonname: '%s'\n", ping_struct->ping_arg);
+	}
+	if (ping_struct->ip_addr == NULL)
+	{
+		printf("ping: %s: Name or service not known\n", ping_struct->ping_arg);
+		return -1;
 	}
 	printf("PING %s (%s) 56(84) bytes of data.\n", ping_struct->ping_arg, ping_struct->ip_addr);
 
@@ -75,4 +81,5 @@ void ping_error(int sockfd, struct s_ping *ping_struct)
 
 	if (setsockopt(sockfd, SOL_SOCKET, IP_TTL, &ping_struct->ttl, sizeof(ping_struct->ttl)))
 		printf("ttl set error");
+	return 0;
 }

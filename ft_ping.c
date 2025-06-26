@@ -35,7 +35,8 @@ int init_socket(struct s_ping *ping_struct)
 	}
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0)
 		printf("Request Timed out\n");
-	ping_error(sockfd, ping_struct);
+	if (ping_init(sockfd, ping_struct) == -1)
+		return -1;
 	return sockfd;
 }
 
@@ -100,6 +101,11 @@ void ping_funct(struct sockaddr_in *addr, struct s_ping *ping_struct)
 	struct s_ping_vars vars = {0};
 	struct timeval tv1;
 	int sockfd = init_socket(ping_struct);
+	if (sockfd == -1)
+	{
+		close(sockfd);
+		return;
+	}
 	char buffer[PACKET_SIZE];
 	struct icmphdr *icmp = (struct icmphdr *)buffer;
 

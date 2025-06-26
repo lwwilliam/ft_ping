@@ -52,24 +52,23 @@ int parse(int ac, char **av, struct s_ping *ping_struct)
 int main (int ac, char **av)
 {
 	struct s_ping ping_struct;
+	char *rev;
 	ping_struct.verbose = 0;
 	if (parse(ac, av, &ping_struct) == 1)
 		return (1);
 	struct sockaddr_in addr;
 	ping_struct.ip_addr = dns_lookup(ping_struct.ping_arg, &addr);
-	if (ping_struct.ip_addr == NULL)
+	if (ping_struct.ip_addr)
 	{
-		printf("ping: %s: Name or service not known\n", ping_struct.ping_arg);
-		free(ping_struct.ip_addr);
-		return 0;
+		rev = reverse_dns_lookup(ping_struct.ip_addr);
+		if (rev)
+			ping_struct.reverse_hostname = rev;
+		else
+			ping_struct.reverse_hostname = ping_struct.ip_addr;
 	}
-	char *rev = reverse_dns_lookup(ping_struct.ip_addr);
-	if (rev)
-		ping_struct.reverse_hostname = rev;
-	else
-		ping_struct.reverse_hostname = ping_struct.ip_addr;
 	ping_funct(&addr, &ping_struct);
 	free(ping_struct.ip_addr);
-	free(rev);
+	if (ping_struct.ip_addr)
+		free(rev);
 	return (0);
 }
